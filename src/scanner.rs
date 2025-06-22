@@ -46,13 +46,23 @@ impl Scanner {
             },
         };
 
-        eprintln!("SCAN_TOKEN GOT {:?}", c);
+        // eprintln!("SCAN_TOKEN GOT {:?}", c);
 
         match c {
             '(' => self.add_token(TokenType::LeftParan, None),
             ')' => self.add_token(TokenType::RightParan, None),
             '{' => self.add_token(TokenType::LeftBrace, None),
             '}' => self.add_token(TokenType::RightBrace, None),
+
+            '+' => self.add_token(TokenType::Plus, None),
+            '-' => self.add_token(TokenType::Minus, None),
+            // '/' => self.add_token(TokenType::Slash, None),
+            '*' => self.add_token(TokenType::Star, None),
+
+            ',' => self.add_token(TokenType::Comma, None),
+            '.' => self.add_token(TokenType::Dot, None),
+            ';' => self.add_token(TokenType::Semicolon, None),
+
             '\n' => self.line += 1,
             ' ' | '\r' | '\t' => {}, // Ignore whitespace
             _ => {
