@@ -67,7 +67,7 @@ impl Scanner {
             ' ' | '\r' | '\t' => {}, // Ignore whitespace
             _ => {
                 // Handle unexpected characters
-                eprintln!("Unexpected character: {}", c);
+                println!("[line {}] Error: Unexpected character: {}", self.line, c);
             }
         }
     }
