@@ -24,12 +24,4 @@ impl Token {
             line,
         }
     }
-
-    pub fn get_type(&self) -> TokenType {
-        self.token_type.clone()
-    }
-
-    pub fn get_lexeme(&self) -> String {
-        self.lexeme.clone()
-    }
 }

@@ -1,6 +1,7 @@
 mod token_type;
 mod scanner;
 mod token;
+mod error;
 
 use std::env;
 use std::fs;

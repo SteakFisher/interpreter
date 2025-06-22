@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use crate::error::LoxError;
 use crate::token::Token;
 use crate::token_type::{Literal, TokenType};
 
@@ -55,6 +56,23 @@ impl Scanner {
         self.source.chars().nth(self.current)
     }
 
+    fn string(&mut self) {
+        while self.peek().unwrap() != '"' && !self.is_at_end() {
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            LoxError::unterminated_string(self.line);
+            self.has_error = true;
+            return;
+        }
+
+        self.advance();
+
+        let value = self.source[self.start + 1..self.current - 1].to_owned();
+        self.add_token(TokenType::String, Option::from(Literal::String(value)));
+    }
+
     fn scan_token(&mut self) {
         let c = match self.advance() {
             Some(c) => c,
@@ -105,18 +123,20 @@ impl Scanner {
                 self.add_token(is_slash, None)
             },
 
+            '"' => self.string(),
+
             '\n' => self.line += 1,
             ' ' | '\r' | '\t' => {}, // Ignore whitespace
             _ => {
                 // Handle unexpected characters
-                eprintln!("[line {}] Error: Unexpected character: {}", self.line, c);
+                LoxError::unexpected_character(self.line, c);
                 self.has_error = true;
             }
         }
     }
 
     pub fn scan_tokens(&mut self) {
-        while(!self.is_at_end()) {
+        while !self.is_at_end() {
             self.start = self.current;
             self.scan_token();
         }
@@ -133,7 +153,7 @@ impl Display for Scanner {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(for token in self.tokens.iter() {
             let literal_str = match &token.literal {
-                Some(literal) => format!("{:?}", literal),
+                Some(literal) => format!("{}", literal),
                 None => "null".to_string(),
             };
 

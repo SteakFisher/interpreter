@@ -25,12 +25,25 @@ pub enum TokenType {
     Greater,
     GreaterEqual,
 
+    String,
+
     EOF
 }
 
-#[derive(Debug)]
-pub struct Literal {
-    smth: String,
+pub enum Literal {
+    String(String),
+}
+
+impl Display for Literal {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Ok(
+            match self {
+                Literal::String(string) => {
+                    write!(f, "{}", string)?;
+                }
+            }
+        )
+    }
 }
 
 impl Display for TokenType {
@@ -58,6 +71,8 @@ impl Display for TokenType {
             TokenType::LessEqual => "LESS_EQUAL",
             TokenType::Greater => "GREATER",
             TokenType::GreaterEqual => "GREATER_EQUAL",
+
+            TokenType::String => "STRING",
 
             TokenType::EOF => "EOF"
         })
