@@ -40,6 +40,16 @@ impl Scanner {
         self.tokens.push(Token::new(token, text, literal, self.line));
     }
 
+    fn match_next(&mut self, expected: &char) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+        if self.source.chars().nth(self.current).unwrap() != *expected { return false; }
+
+        self.current += 1;
+        true
+    }
+
     fn scan_token(&mut self) {
         let c = match self.advance() {
             Some(c) => c,
@@ -63,6 +73,23 @@ impl Scanner {
             ',' => self.add_token(TokenType::Comma, None),
             '.' => self.add_token(TokenType::Dot, None),
             ';' => self.add_token(TokenType::Semicolon, None),
+
+            '=' => {
+                let is_equal = if self.match_next(&'=') { TokenType::EqualEqual } else { TokenType::Equal };
+                self.add_token(is_equal, None)
+            },
+            '!' => {
+                let is_equal = if self.match_next(&'=') { TokenType::BangEqual } else { TokenType::Bang };
+                self.add_token(is_equal, None)
+            },
+            '<' => {
+                let is_equal = if self.match_next(&'=') { TokenType::LessEqual } else { TokenType::Less };
+                self.add_token(is_equal, None)
+            },
+            '>' => {
+                let is_equal = if self.match_next(&'=') { TokenType::GreaterEqual } else { TokenType::Greater };
+                self.add_token(is_equal, None)
+            },
 
             '\n' => self.line += 1,
             ' ' | '\r' | '\t' => {}, // Ignore whitespace

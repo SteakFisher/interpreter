@@ -16,6 +16,15 @@ pub enum TokenType {
     Dot,
     Semicolon,
 
+    Equal,
+    EqualEqual,
+    Bang,
+    BangEqual,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+
     EOF
 }
 
@@ -31,13 +40,25 @@ impl Display for TokenType {
             TokenType::RightParan => "RIGHT_PAREN",
             TokenType::LeftBrace => "LEFT_BRACE",
             TokenType::RightBrace => "RIGHT_BRACE",
+
             TokenType::Plus => "PLUS",
             TokenType::Minus => "MINUS",
             TokenType::Star => "STAR",
             TokenType::Slash => "SLASH",
+
             TokenType::Comma => "COMMA",
             TokenType::Dot => "DOT",
             TokenType::Semicolon => "SEMICOLON",
+
+            TokenType::Equal => "EQUAL",
+            TokenType::EqualEqual => "EQUAL_EQUAL",
+            TokenType::Bang => "BANG",
+            TokenType::BangEqual => "BANG_EQUAL",
+            TokenType::Less => "LESS",
+            TokenType::LessEqual => "LESS_EQUAL",
+            TokenType::Greater => "GREATER",
+            TokenType::GreaterEqual => "GREATER_EQUAL",
+
             TokenType::EOF => "EOF"
         })
     }
