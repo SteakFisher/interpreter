@@ -29,11 +29,14 @@ fn main() {
 
             // Uncomment this block to pass the first stage
             if !file_contents.is_empty() {
-                eprintln!("File contents: {}", file_contents);
                 let mut scanner = Scanner::new(file_contents);
                 scanner.scan_tokens();
 
                 print!("{}", scanner);
+
+                if scanner.has_error() {
+                    std::process::exit(65);
+                }
             } else {
                 println!("EOF  null"); // Placeholder, replace this line when implementing the scanner
             }

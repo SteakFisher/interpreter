@@ -9,6 +9,8 @@ pub struct Scanner {
     start: usize,
     current: usize,
     line: usize,
+
+    has_error: bool,
 }
 
 impl Scanner {
@@ -18,7 +20,8 @@ impl Scanner {
             tokens: vec![],
             start: 0,
             current: 0,
-            line: 1
+            line: 1,
+            has_error: false,
         }
     }
 
@@ -46,8 +49,6 @@ impl Scanner {
             },
         };
 
-        // eprintln!("SCAN_TOKEN GOT {:?}", c);
-
         match c {
             '(' => self.add_token(TokenType::LeftParan, None),
             ')' => self.add_token(TokenType::RightParan, None),
@@ -67,7 +68,8 @@ impl Scanner {
             ' ' | '\r' | '\t' => {}, // Ignore whitespace
             _ => {
                 // Handle unexpected characters
-                println!("[line {}] Error: Unexpected character: {}", self.line, c);
+                eprintln!("[line {}] Error: Unexpected character: {}", self.line, c);
+                self.has_error = true;
             }
         }
     }
@@ -79,6 +81,10 @@ impl Scanner {
         }
 
         self.tokens.push(Token::new(TokenType::EOF, "".to_string(), None, self.line));
+    }
+
+    pub fn has_error(&self) -> bool {
+        self.has_error
     }
 }
 
