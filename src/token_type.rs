@@ -4,6 +4,9 @@ use std::fmt::{Display, Formatter};
 pub enum TokenType {
     LeftParan,
     RightParan,
+    LeftBrace,
+    RightBrace,
+
     EOF
 }
 
@@ -17,6 +20,8 @@ impl Display for TokenType {
         write!(f, "{}", match self {
             TokenType::LeftParan => "LEFT_PAREN",
             TokenType::RightParan => "RIGHT_PAREN",
+            TokenType::LeftBrace => "LEFT_BRACE",
+            TokenType::RightBrace => "RIGHT_BRACE",
             TokenType::EOF => "EOF"
         })
     }

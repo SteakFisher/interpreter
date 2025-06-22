@@ -51,6 +51,8 @@ impl Scanner {
         match c {
             '(' => self.add_token(TokenType::LeftParan, None),
             ')' => self.add_token(TokenType::RightParan, None),
+            '{' => self.add_token(TokenType::LeftBrace, None),
+            '}' => self.add_token(TokenType::RightBrace, None),
             '\n' => self.line += 1,
             ' ' | '\r' | '\t' => {}, // Ignore whitespace
             _ => {
