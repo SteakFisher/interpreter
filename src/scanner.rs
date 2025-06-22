@@ -50,6 +50,11 @@ impl Scanner {
         true
     }
 
+    fn peek(&self) -> Option<char> {
+        if self.is_at_end() { return Some('\0'); }
+        self.source.chars().nth(self.current)
+    }
+
     fn scan_token(&mut self) {
         let c = match self.advance() {
             Some(c) => c,
@@ -67,7 +72,6 @@ impl Scanner {
 
             '+' => self.add_token(TokenType::Plus, None),
             '-' => self.add_token(TokenType::Minus, None),
-            // '/' => self.add_token(TokenType::Slash, None),
             '*' => self.add_token(TokenType::Star, None),
 
             ',' => self.add_token(TokenType::Comma, None),
@@ -79,16 +83,26 @@ impl Scanner {
                 self.add_token(is_equal, None)
             },
             '!' => {
-                let is_equal = if self.match_next(&'=') { TokenType::BangEqual } else { TokenType::Bang };
-                self.add_token(is_equal, None)
+                let is_bang = if self.match_next(&'=') { TokenType::BangEqual } else { TokenType::Bang };
+                self.add_token(is_bang, None)
             },
             '<' => {
-                let is_equal = if self.match_next(&'=') { TokenType::LessEqual } else { TokenType::Less };
-                self.add_token(is_equal, None)
+                let is_less = if self.match_next(&'=') { TokenType::LessEqual } else { TokenType::Less };
+                self.add_token(is_less, None)
             },
             '>' => {
-                let is_equal = if self.match_next(&'=') { TokenType::GreaterEqual } else { TokenType::Greater };
-                self.add_token(is_equal, None)
+                let is_greater = if self.match_next(&'=') { TokenType::GreaterEqual } else { TokenType::Greater };
+                self.add_token(is_greater, None)
+            },
+
+            '/' => {
+                let is_slash = if self.match_next(&'/') {
+                    while self.peek().unwrap_or('\0') != '\n' && !self.is_at_end() {
+                        self.advance();
+                    }
+                    return;
+                } else { TokenType::Slash };
+                self.add_token(is_slash, None)
             },
 
             '\n' => self.line += 1,
