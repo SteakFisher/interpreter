@@ -1,7 +1,8 @@
+use std::collections::{HashMap, HashSet};
 use std::fmt::Display;
 use crate::error::LoxError;
 use crate::token::Token;
-use crate::token_type::{Literal, TokenType};
+use crate::token_type::{KeyWord, Literal, TokenType};
 
 pub struct Scanner {
     source: String,
@@ -12,6 +13,8 @@ pub struct Scanner {
     line: usize,
 
     has_error: bool,
+
+    keywords: HashMap<&'static str, TokenType>,
 }
 
 impl Scanner {
@@ -23,6 +26,8 @@ impl Scanner {
             current: 0,
             line: 1,
             has_error: false,
+
+            keywords: KeyWord::make_keywords(),
         }
     }
 
@@ -96,6 +101,24 @@ impl Scanner {
         self.add_token(TokenType::Number, Some(Literal::Number(value)));
     }
 
+    fn identifier(&mut self) {
+        while (self.peek().unwrap().is_ascii_alphanumeric() || (self.peek().unwrap() == '_')) && !self.is_at_end() {
+            self.advance();
+        }
+
+        let value = self.source[self.start..self.current].to_owned();
+        let token_type = self.keywords.get(value.as_str()).cloned();
+
+        match token_type {
+            Some(token_type) => {
+                self.add_token(token_type, None);
+            }
+            None => {
+                self.add_token(TokenType::Identifier, None);
+            }
+        }
+    }
+
     fn scan_token(&mut self) {
         let c = match self.advance() {
             Some(c) => c,
@@ -149,6 +172,8 @@ impl Scanner {
             '"' => self.string(),
 
             '0'..='9' => self.number(),
+
+            'a'..='z' | 'A'..='Z' | '_' => self.identifier(),
 
             '\n' => self.line += 1,
             ' ' | '\r' | '\t' => {}, // Ignore whitespace

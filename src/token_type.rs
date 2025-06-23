@@ -1,4 +1,34 @@
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
+
+pub struct KeyWord {}
+
+impl KeyWord {
+    pub fn make_keywords() -> HashMap<&'static str, TokenType> {
+        use TokenType::*;
+
+        let mut keywords = HashMap::new();
+        keywords.insert("and", And);
+        keywords.insert("class", Class);
+        keywords.insert("else", Else);
+        keywords.insert("false", False);
+        keywords.insert("for", For);
+        keywords.insert("fun", Fun);
+        keywords.insert("if", If);
+        keywords.insert("nil", Nil);
+        keywords.insert("or", Or);
+        keywords.insert("print", Print);
+        keywords.insert("return", Return);
+        keywords.insert("super", Super);
+        keywords.insert("this", This);
+        keywords.insert("true", True);
+        keywords.insert("var", Var);
+        keywords.insert("while", While);
+
+        keywords
+    }
+
+}
 
 #[derive(Clone)]
 pub enum TokenType {
@@ -27,6 +57,24 @@ pub enum TokenType {
 
     String,
     Number,
+    Identifier,
+
+    And,
+    Class,
+    Else,
+    False,
+    For,
+    Fun,
+    If,
+    Nil,
+    Or,
+    Print,
+    Return,
+    Super,
+    This,
+    True,
+    Var,
+    While,
 
     EOF
 }
@@ -83,6 +131,24 @@ impl Display for TokenType {
 
             TokenType::String => "STRING",
             TokenType::Number => "NUMBER",
+            TokenType::Identifier => "IDENTIFIER",
+
+            TokenType::And => "AND",
+            TokenType::Class => "CLASS",
+            TokenType::Else => "ELSE",
+            TokenType::False => "FALSE",
+            TokenType::For => "FOR",
+            TokenType::Fun => "FUN",
+            TokenType::If => "IF",
+            TokenType::Nil => "NIL",
+            TokenType::Or => "OR",
+            TokenType::Print => "PRINT",
+            TokenType::Return => "RETURN",
+            TokenType::Super => "SUPER",
+            TokenType::This => "THIS",
+            TokenType::True => "TRUE",
+            TokenType::Var => "VAR",
+            TokenType::While => "WHILE",
 
             TokenType::EOF => "EOF"
         })
