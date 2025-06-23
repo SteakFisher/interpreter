@@ -56,6 +56,11 @@ impl Scanner {
         self.source.chars().nth(self.current)
     }
 
+    fn peek_next(&self) -> Option<char> {
+        if self.current + 1 > self.source.len() { return Some('\0'); }
+        self.source.chars().nth(self.current + 1)
+    }
+
     fn string(&mut self) {
         while self.peek().unwrap() != '"' && !self.is_at_end() {
             self.advance();
@@ -71,6 +76,24 @@ impl Scanner {
 
         let value = self.source[self.start + 1..self.current - 1].to_owned();
         self.add_token(TokenType::String, Option::from(Literal::String(value)));
+    }
+
+    fn number(&mut self) {
+        while self.peek().unwrap().is_ascii_digit() {
+            self.advance();
+        }
+
+        if self.peek().unwrap() == '.' && self.peek_next().unwrap().is_ascii_digit() {
+            self.advance();
+
+            while self.peek().unwrap().is_ascii_digit() {
+                self.advance();
+            }
+        }
+
+        let value = self.source[self.start..self.current].to_owned().parse::<f64>().unwrap();
+
+        self.add_token(TokenType::Number, Some(Literal::Number(value)));
     }
 
     fn scan_token(&mut self) {
@@ -124,6 +147,8 @@ impl Scanner {
             },
 
             '"' => self.string(),
+
+            '0'..='9' => self.number(),
 
             '\n' => self.line += 1,
             ' ' | '\r' | '\t' => {}, // Ignore whitespace

@@ -26,12 +26,14 @@ pub enum TokenType {
     GreaterEqual,
 
     String,
+    Number,
 
     EOF
 }
 
 pub enum Literal {
     String(String),
+    Number(f64),
 }
 
 impl Display for Literal {
@@ -40,6 +42,13 @@ impl Display for Literal {
             match self {
                 Literal::String(string) => {
                     write!(f, "{}", string)?;
+                }
+                Literal::Number(num) => {
+                    if num.fract() == 0.0 {
+                        write!(f, "{:.1}", num)?;
+                    } else {
+                        write!(f, "{}", num)?;
+                    }
                 }
             }
         )
@@ -73,6 +82,7 @@ impl Display for TokenType {
             TokenType::GreaterEqual => "GREATER_EQUAL",
 
             TokenType::String => "STRING",
+            TokenType::Number => "NUMBER",
 
             TokenType::EOF => "EOF"
         })
