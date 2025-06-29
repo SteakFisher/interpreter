@@ -27,7 +27,6 @@ impl KeyWord {
 
         keywords
     }
-
 }
 
 #[derive(Clone)]
@@ -76,82 +75,83 @@ pub enum TokenType {
     Var,
     While,
 
-    EOF
+    EOF,
 }
 
-pub enum Literal {
+pub enum LiteralValue {
     String(String),
     Number(f64),
 }
 
-impl Display for Literal {
+impl Display for LiteralValue {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        Ok(
-            match self {
-                Literal::String(string) => {
-                    write!(f, "{}", string)?;
-                }
-                Literal::Number(num) => {
-                    if num.fract() == 0.0 {
-                        write!(f, "{:.1}", num)?;
-                    } else {
-                        write!(f, "{}", num)?;
-                    }
+        Ok(match self {
+            LiteralValue::String(string) => {
+                write!(f, "{}", string)?;
+            }
+            LiteralValue::Number(num) => {
+                if num.fract() == 0.0 {
+                    write!(f, "{:.1}", num)?;
+                } else {
+                    write!(f, "{}", num)?;
                 }
             }
-        )
+        })
     }
 }
 
 impl Display for TokenType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            TokenType::LeftParan => "LEFT_PAREN",
-            TokenType::RightParan => "RIGHT_PAREN",
-            TokenType::LeftBrace => "LEFT_BRACE",
-            TokenType::RightBrace => "RIGHT_BRACE",
+        write!(
+            f,
+            "{}",
+            match self {
+                TokenType::LeftParan => "LEFT_PAREN",
+                TokenType::RightParan => "RIGHT_PAREN",
+                TokenType::LeftBrace => "LEFT_BRACE",
+                TokenType::RightBrace => "RIGHT_BRACE",
 
-            TokenType::Plus => "PLUS",
-            TokenType::Minus => "MINUS",
-            TokenType::Star => "STAR",
-            TokenType::Slash => "SLASH",
+                TokenType::Plus => "PLUS",
+                TokenType::Minus => "MINUS",
+                TokenType::Star => "STAR",
+                TokenType::Slash => "SLASH",
 
-            TokenType::Comma => "COMMA",
-            TokenType::Dot => "DOT",
-            TokenType::Semicolon => "SEMICOLON",
+                TokenType::Comma => "COMMA",
+                TokenType::Dot => "DOT",
+                TokenType::Semicolon => "SEMICOLON",
 
-            TokenType::Equal => "EQUAL",
-            TokenType::EqualEqual => "EQUAL_EQUAL",
-            TokenType::Bang => "BANG",
-            TokenType::BangEqual => "BANG_EQUAL",
-            TokenType::Less => "LESS",
-            TokenType::LessEqual => "LESS_EQUAL",
-            TokenType::Greater => "GREATER",
-            TokenType::GreaterEqual => "GREATER_EQUAL",
+                TokenType::Equal => "EQUAL",
+                TokenType::EqualEqual => "EQUAL_EQUAL",
+                TokenType::Bang => "BANG",
+                TokenType::BangEqual => "BANG_EQUAL",
+                TokenType::Less => "LESS",
+                TokenType::LessEqual => "LESS_EQUAL",
+                TokenType::Greater => "GREATER",
+                TokenType::GreaterEqual => "GREATER_EQUAL",
 
-            TokenType::String => "STRING",
-            TokenType::Number => "NUMBER",
-            TokenType::Identifier => "IDENTIFIER",
+                TokenType::String => "STRING",
+                TokenType::Number => "NUMBER",
+                TokenType::Identifier => "IDENTIFIER",
 
-            TokenType::And => "AND",
-            TokenType::Class => "CLASS",
-            TokenType::Else => "ELSE",
-            TokenType::False => "FALSE",
-            TokenType::For => "FOR",
-            TokenType::Fun => "FUN",
-            TokenType::If => "IF",
-            TokenType::Nil => "NIL",
-            TokenType::Or => "OR",
-            TokenType::Print => "PRINT",
-            TokenType::Return => "RETURN",
-            TokenType::Super => "SUPER",
-            TokenType::This => "THIS",
-            TokenType::True => "TRUE",
-            TokenType::Var => "VAR",
-            TokenType::While => "WHILE",
+                TokenType::And => "AND",
+                TokenType::Class => "CLASS",
+                TokenType::Else => "ELSE",
+                TokenType::False => "FALSE",
+                TokenType::For => "FOR",
+                TokenType::Fun => "FUN",
+                TokenType::If => "IF",
+                TokenType::Nil => "NIL",
+                TokenType::Or => "OR",
+                TokenType::Print => "PRINT",
+                TokenType::Return => "RETURN",
+                TokenType::Super => "SUPER",
+                TokenType::This => "THIS",
+                TokenType::True => "TRUE",
+                TokenType::Var => "VAR",
+                TokenType::While => "WHILE",
 
-            TokenType::EOF => "EOF"
-        })
+                TokenType::EOF => "EOF",
+            }
+        )
     }
 }
-

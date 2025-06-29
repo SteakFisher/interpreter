@@ -1,8 +1,8 @@
-use std::collections::{HashMap, HashSet};
-use std::fmt::Display;
 use crate::error::LoxError;
 use crate::token::Token;
-use crate::token_type::{KeyWord, Literal, TokenType};
+use crate::token_type::{KeyWord, LiteralValue, TokenType};
+use std::collections::HashMap;
+use std::fmt::Display;
 
 pub struct Scanner {
     source: String,
@@ -41,28 +41,35 @@ impl Scanner {
         c
     }
 
-    fn add_token(&mut self, token: TokenType, literal: Option<Literal>) {
+    fn add_token(&mut self, token: TokenType, literal: Option<LiteralValue>) {
         let text = self.source[self.start..self.current].to_owned();
-        self.tokens.push(Token::new(token, text, literal, self.line));
+        self.tokens
+            .push(Token::new(token, text, literal, self.line));
     }
 
     fn match_next(&mut self, expected: &char) -> bool {
         if self.is_at_end() {
             return false;
         }
-        if self.source.chars().nth(self.current).unwrap() != *expected { return false; }
+        if self.source.chars().nth(self.current).unwrap() != *expected {
+            return false;
+        }
 
         self.current += 1;
         true
     }
 
     fn peek(&self) -> Option<char> {
-        if self.is_at_end() { return Some('\0'); }
+        if self.is_at_end() {
+            return Some('\0');
+        }
         self.source.chars().nth(self.current)
     }
 
     fn peek_next(&self) -> Option<char> {
-        if self.current + 1 > self.source.len() { return Some('\0'); }
+        if self.current + 1 > self.source.len() {
+            return Some('\0');
+        }
         self.source.chars().nth(self.current + 1)
     }
 
@@ -80,7 +87,7 @@ impl Scanner {
         self.advance();
 
         let value = self.source[self.start + 1..self.current - 1].to_owned();
-        self.add_token(TokenType::String, Option::from(Literal::String(value)));
+        self.add_token(TokenType::String, Option::from(LiteralValue::String(value)));
     }
 
     fn number(&mut self) {
@@ -96,13 +103,18 @@ impl Scanner {
             }
         }
 
-        let value = self.source[self.start..self.current].to_owned().parse::<f64>().unwrap();
+        let value = self.source[self.start..self.current]
+            .to_owned()
+            .parse::<f64>()
+            .unwrap();
 
-        self.add_token(TokenType::Number, Some(Literal::Number(value)));
+        self.add_token(TokenType::Number, Some(LiteralValue::Number(value)));
     }
 
     fn identifier(&mut self) {
-        while (self.peek().unwrap().is_ascii_alphanumeric() || (self.peek().unwrap() == '_')) && !self.is_at_end() {
+        while (self.peek().unwrap().is_ascii_alphanumeric() || (self.peek().unwrap() == '_'))
+            && !self.is_at_end()
+        {
             self.advance();
         }
 
@@ -124,8 +136,8 @@ impl Scanner {
             Some(c) => c,
             None => {
                 println!("SCAN_TOKEN OUT OF BOUNDS");
-                return
-            },
+                return;
+            }
         };
 
         match c {
@@ -143,21 +155,37 @@ impl Scanner {
             ';' => self.add_token(TokenType::Semicolon, None),
 
             '=' => {
-                let is_equal = if self.match_next(&'=') { TokenType::EqualEqual } else { TokenType::Equal };
+                let is_equal = if self.match_next(&'=') {
+                    TokenType::EqualEqual
+                } else {
+                    TokenType::Equal
+                };
                 self.add_token(is_equal, None)
-            },
+            }
             '!' => {
-                let is_bang = if self.match_next(&'=') { TokenType::BangEqual } else { TokenType::Bang };
+                let is_bang = if self.match_next(&'=') {
+                    TokenType::BangEqual
+                } else {
+                    TokenType::Bang
+                };
                 self.add_token(is_bang, None)
-            },
+            }
             '<' => {
-                let is_less = if self.match_next(&'=') { TokenType::LessEqual } else { TokenType::Less };
+                let is_less = if self.match_next(&'=') {
+                    TokenType::LessEqual
+                } else {
+                    TokenType::Less
+                };
                 self.add_token(is_less, None)
-            },
+            }
             '>' => {
-                let is_greater = if self.match_next(&'=') { TokenType::GreaterEqual } else { TokenType::Greater };
+                let is_greater = if self.match_next(&'=') {
+                    TokenType::GreaterEqual
+                } else {
+                    TokenType::Greater
+                };
                 self.add_token(is_greater, None)
-            },
+            }
 
             '/' => {
                 let is_slash = if self.match_next(&'/') {
@@ -165,9 +193,11 @@ impl Scanner {
                         self.advance();
                     }
                     return;
-                } else { TokenType::Slash };
+                } else {
+                    TokenType::Slash
+                };
                 self.add_token(is_slash, None)
-            },
+            }
 
             '"' => self.string(),
 
@@ -176,7 +206,7 @@ impl Scanner {
             'a'..='z' | 'A'..='Z' | '_' => self.identifier(),
 
             '\n' => self.line += 1,
-            ' ' | '\r' | '\t' => {}, // Ignore whitespace
+            ' ' | '\r' | '\t' => {} // Ignore whitespace
             _ => {
                 // Handle unexpected characters
                 LoxError::unexpected_character(self.line, c);
@@ -191,7 +221,8 @@ impl Scanner {
             self.scan_token();
         }
 
-        self.tokens.push(Token::new(TokenType::EOF, "".to_string(), None, self.line));
+        self.tokens
+            .push(Token::new(TokenType::EOF, "".to_string(), None, self.line));
     }
 
     pub fn has_error(&self) -> bool {

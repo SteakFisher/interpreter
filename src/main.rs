@@ -1,12 +1,18 @@
-mod token_type;
+mod error;
+mod expr;
 mod scanner;
 mod token;
-mod error;
+mod token_type;
+mod ast_printer;
 
+use scanner::Scanner;
 use std::env;
 use std::fs;
 use std::io::{self, Write};
-use scanner::Scanner;
+use crate::ast_printer::AstPrinter;
+use crate::expr::{Binary, Expr, Grouping, Literal, Unary};
+use crate::token::Token;
+use crate::token_type::LiteralValue;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -38,8 +44,30 @@ fn main() {
                 if scanner.has_error() {
                     std::process::exit(65);
                 }
+
+                let expression: Expr = Expr::Binary(Binary {
+                    left: Box::from(Expr::Unary(Unary {
+                        operator: Token {
+                            token_type: token_type::TokenType::Minus,
+                            lexeme: "-".to_string(),
+                            literal: None,
+                            line: 1,
+                        },
+                        right: Box::from(Expr::Literal(Literal { value: LiteralValue::Number(123.00) })),
+                    })),
+                    operator: Token {
+                        token_type: token_type::TokenType::Minus,
+                        lexeme: "-".to_string(),
+                        literal: None,
+                        line: 1,
+                    },
+                    right: Box::from(Expr::Grouping(Grouping { expression: Box::from(Expr::Literal(Literal { value: LiteralValue::Number(45.67) })) })),
+                });
+                let ast_printer = AstPrinter {};
+
+                println!("{}", ast_printer.print(expression));
             } else {
-                println!("EOF  null"); // Placeholder, replace this line when implementing the scanner
+                println!("EOF  null");
             }
         }
         _ => {
