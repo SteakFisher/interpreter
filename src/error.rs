@@ -8,8 +8,4 @@ impl LoxError {
     pub fn unterminated_string(line: usize) {
         eprintln!("[line {}] Error: Unterminated string.", line)
     }
-
-    pub fn syntax_error(line: usize) {
-        eprintln!("[line {}] Error: syntax error", line)
-    }
 }

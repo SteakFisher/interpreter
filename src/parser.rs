@@ -1,4 +1,3 @@
-use crate::error::LoxError;
 use crate::expr::{Binary, Expr, Grouping, Literal, Unary};
 use crate::token::Token;
 use crate::token_type::{LiteralValue, TokenType};
@@ -105,32 +104,58 @@ impl Parser {
     }
 
     fn primary(&mut self) -> Expr {
-        if self.compare(&[TokenType::False]) { return Expr::Literal(Literal { value: LiteralValue::Bool(false) }) }
-        if self.compare(&[TokenType::True]) { return Expr::Literal(Literal { value: LiteralValue::Bool(true) }) }
-        if self.compare(&[TokenType::Nil]) { return Expr::Literal(Literal { value: LiteralValue::Nil }) }
+        if self.compare(&[TokenType::False]) {
+            return Expr::Literal(Literal { value: LiteralValue::Bool(false) });
+        }
+        if self.compare(&[TokenType::True]) {
+            return Expr::Literal(Literal { value: LiteralValue::Bool(true) });
+        }
+        if self.compare(&[TokenType::Nil]) {
+            return Expr::Literal(Literal { value: LiteralValue::Nil });
+        }
 
         if self.compare(&[TokenType::Number, TokenType::String]) {
-            return Expr::Literal(Literal { value: self.previous().literal.clone().unwrap() })
+            return Expr::Literal(Literal {
+                value: self.previous().literal.clone().unwrap(),
+            });
         }
 
         if self.compare(&[TokenType::LeftParan]) {
             let expr = self.expression();
             self.consume(TokenType::RightParan, "Expect ')' after expression.");
-            Expr::Grouping(Grouping { expression: Box::new(expr) })
-        } else {
-            panic!("Recursive descent not exhaustive")
-        }
-    }
-
-    fn consume(&mut self, token_type: TokenType, message: &str) {
-        if self.check(&token_type) {
-            self.advance();
-            return;
+            return Expr::Grouping(Grouping {
+                expression: Box::new(expr),
+            });
         }
 
-        LoxError::syntax_error(1);
         self.has_error = true;
+        self.error(self.peek(), "Expect expression.");
+        return Expr::Literal(Literal { value: LiteralValue::Nil });
     }
+
+    fn consume(&mut self, token_type: TokenType, message: &str) -> &Token {
+        if self.check(&token_type) {
+            return self.advance();
+        }
+
+        self.has_error = true;
+        let token = self.peek();
+        self.error(token, message);
+
+        token
+    }
+
+    fn error(&self, token: &Token, message: &str) {
+        if token.token_type == TokenType::EOF {
+            eprintln!("[line {}] Error at end: {}", token.line, message);
+        } else {
+            eprintln!(
+                "[line {}] Error at '{}': {}",
+                token.line, token.lexeme, message
+            );
+        }
+    }
+
 
     fn peek(&self) -> &Token {
         &self.tokens[self.current]
