@@ -29,7 +29,7 @@ impl KeyWord {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum TokenType {
     LeftParan,
     RightParan,
@@ -78,9 +78,12 @@ pub enum TokenType {
     EOF,
 }
 
+#[derive(Clone)]
 pub enum LiteralValue {
     String(String),
     Number(f64),
+    Bool(bool),
+    Nil
 }
 
 impl Display for LiteralValue {
@@ -95,6 +98,16 @@ impl Display for LiteralValue {
                 } else {
                     write!(f, "{}", num)?;
                 }
+            }
+            LiteralValue::Bool(boolean) => {
+                if *boolean {
+                    write!(f, "true")?;
+                } else {
+                    write!(f, "false")?;
+                }
+            }
+            LiteralValue::Nil => {
+                write!(f, "nil")?;
             }
         })
     }
