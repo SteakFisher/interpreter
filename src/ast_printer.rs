@@ -16,7 +16,6 @@ impl AstPrinter {
         for expr in exprs {
             final_string.push_str(" ");
             final_string.push_str(&expr.accept(self));
-            final_string.push_str(" ");
         }
         final_string.push_str(")");
         final_string
