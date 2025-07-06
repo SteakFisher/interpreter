@@ -104,7 +104,15 @@ fn main() {
                 }
 
                 let interpreter = Interpreter {};
-                let literal_value = interpreter.interpret(&Box::from(expression));
+                let literal_value = match interpreter.interpret(&Box::from(expression)) {
+                    LiteralValue::Number(num) => {
+                        format!("{}", num)
+                    }
+                    val => {
+                        val.to_string()
+                    }
+                };
+
                 println!("{}", literal_value);
             }
         }
