@@ -130,7 +130,7 @@ impl Parser {
 
         self.has_error = true;
         self.error(self.peek(), "Expect expression.");
-        return Expr::Literal(Literal { value: LiteralValue::Nil });
+        Expr::Literal(Literal { value: LiteralValue::Nil })
     }
 
     fn consume(&mut self, token_type: TokenType, message: &str) -> &Token {

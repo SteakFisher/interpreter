@@ -18,6 +18,7 @@ pub struct Grouping {
     pub expression: Box<Expr>,
 }
 
+#[derive(Clone)]
 pub struct Literal {
     pub value: LiteralValue,
 }

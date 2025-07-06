@@ -5,6 +5,7 @@ mod token;
 mod token_type;
 mod ast_printer;
 mod parser;
+mod interpreter;
 
 use scanner::Scanner;
 use parser::Parser;
@@ -13,6 +14,7 @@ use std::fs;
 use std::io::{self, Write};
 use crate::ast_printer::AstPrinter;
 use crate::expr::{Binary, Expr, Grouping, Literal, Unary};
+use crate::interpreter::Interpreter;
 use crate::token::Token;
 use crate::token_type::LiteralValue;
 
@@ -47,40 +49,16 @@ fn main() {
                     std::process::exit(65);
                 }
 
-                // let expression: Expr = Expr::Binary(Binary {
-                //     left: Box::from(Expr::Unary(Unary {
-                //         operator: Token {
-                //             token_type: token_type::TokenType::Minus,
-                //             lexeme: "-".to_string(),
-                //             literal: None,
-                //             line: 1,
-                //         },
-                //         right: Box::from(Expr::Literal(Literal { value: LiteralValue::Number(123.00) })),
-                //     })),
-                //     operator: Token {
-                //         token_type: token_type::TokenType::Minus,
-                //         lexeme: "-".to_string(),
-                //         literal: None,
-                //         line: 1,
-                //     },
-                //     right: Box::from(Expr::Grouping(Grouping { expression: Box::from(Expr::Literal(Literal { value: LiteralValue::Number(45.67) })) })),
-                // });
-                // let ast_printer = AstPrinter {};
-                //
-                // println!("{}", ast_printer.print(expression));
             } else {
                 println!("EOF  null");
             }
         }
         "parse" => {
-            writeln!(io::stderr(), "Logs from your program will appear here!").unwrap();
-
             let file_contents = fs::read_to_string(filename).unwrap_or_else(|_| {
                 writeln!(io::stderr(), "Failed to read file {}", filename).unwrap();
                 String::new()
             });
 
-            // Uncomment this block to pass the first stage
             if !file_contents.is_empty() {
                 let mut scanner = Scanner::new(file_contents);
                 scanner.scan_tokens();
@@ -101,6 +79,33 @@ fn main() {
 
             } else {
                 println!("EOF  ");
+            }
+        }
+        "evaluate" => {
+            let file_contents = fs::read_to_string(filename).unwrap_or_else(|_| {
+                writeln!(io::stderr(), "Failed to read file {}", filename).unwrap();
+                String::new()
+            });
+
+            if !file_contents.is_empty() {
+                let mut scanner = Scanner::new(file_contents);
+                scanner.scan_tokens();
+
+                if scanner.has_error() {
+                    std::process::exit(65);
+                }
+
+                let mut expr = Parser::new(scanner.get_tokens());
+
+                let expression = expr.expression();
+
+                if expr.has_error() {
+                    std::process::exit(65);
+                }
+
+                let interpreter = Interpreter {};
+                let literal_value = interpreter.interpret(&Box::from(expression));
+                println!("{}", literal_value);
             }
         }
         _ => {
