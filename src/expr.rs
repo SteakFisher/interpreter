@@ -1,6 +1,7 @@
 use crate::token::Token;
 use crate::token_type::LiteralValue;
 
+#[derive(Clone)]
 pub enum Expr {
     Binary(Binary),
     Grouping(Grouping),
@@ -8,12 +9,14 @@ pub enum Expr {
     Unary(Unary),
 }
 
+#[derive(Clone)]
 pub struct Binary {
     pub left: Box<Expr>,
     pub operator: Token,
     pub right: Box<Expr>,
 }
 
+#[derive(Clone)]
 pub struct Grouping {
     pub expression: Box<Expr>,
 }
@@ -23,6 +26,7 @@ pub struct Literal {
     pub value: LiteralValue,
 }
 
+#[derive(Clone)]
 pub struct Unary {
     pub operator: Token,
     pub right: Box<Expr>,
