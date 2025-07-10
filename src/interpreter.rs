@@ -23,12 +23,15 @@ impl Visitor<Result<LiteralValue, String>> for Interpreter {
                                 Ok(LiteralValue::Bool(left != right))
                             }
                             _ => {
-                                panic!("Unsupported binary operator");
+                                Err("Invalid operator".to_string())
                             }
                         }
                     }
+                    LiteralValue::Number(left) => {
+                        Interpreter::str_int_equality(expr)
+                    }
                     _ => {
-                        panic!("Unsupported binary operator");
+                        Err("Invalid operator".to_string())
                     }
                 }
             }
@@ -67,12 +70,15 @@ impl Visitor<Result<LiteralValue, String>> for Interpreter {
                                Ok(LiteralValue::Bool(left != right))
                            }
                            _ => {
-                               panic!("Unsupported binary operator");
+                               Err("Invalid operator".to_string())
                            }
                        }
                     }
+                    LiteralValue::String(left) => {
+                        Interpreter::str_int_equality(expr)
+                    }
                     _ => {
-                        Ok(LiteralValue::Bool(false))
+                        Err("Invalid operator".to_string())
                     }
                 }
             }
@@ -87,12 +93,12 @@ impl Visitor<Result<LiteralValue, String>> for Interpreter {
                                 Ok(LiteralValue::Bool(left != right))
                             }
                             _ => {
-                                panic!("Unsupported binary operator");
+                                Err("Invalid operator".to_string())
                             }
                         }
                     }
                     _ => {
-                        Ok(LiteralValue::Bool(false))
+                        Err("Invalid operator".to_string())
                     }
                 }
             }
@@ -107,79 +113,6 @@ impl Visitor<Result<LiteralValue, String>> for Interpreter {
                 }
             }
         }
-
-        // match *left {
-        //     Expr::Literal(Literal { value: LiteralValue::Number(left) }) => {
-        //        match *right {
-        //            Expr::Literal(Literal { value: LiteralValue::Number(right) }) => {
-        //                match expr.operator.token_type {
-        //                    TokenType::Minus => {
-        //                        LiteralValue::Number(left - right)
-        //                    }
-        //                    TokenType::Star => {
-        //                        LiteralValue::Number(left * right)
-        //                    }
-        //                    TokenType::Slash => {
-        //                        LiteralValue::Number(left / right)
-        //                    }
-        //                    TokenType::Plus => {
-        //                        LiteralValue::Number(left + right)
-        //                    }
-        //                    TokenType::Greater => {
-        //                        LiteralValue::Bool(left > right)
-        //                    }
-        //                    TokenType::GreaterEqual => {
-        //                        LiteralValue::Bool(left >= right)
-        //                    }
-        //                    TokenType::Less => {
-        //                        LiteralValue::Bool(left < right)
-        //                    }
-        //                    TokenType::LessEqual => {
-        //                        LiteralValue::Bool(left <= right)
-        //                    }
-        //                    TokenType::EqualEqual => {
-        //                        LiteralValue::Bool(left == right)
-        //                    }
-        //                    TokenType::BangEqual => {
-        //                        LiteralValue::Bool(left != right)
-        //                    }
-        //                    _ => {
-        //                        panic!("Unsupported binary operator");
-        //                    }
-        //                }
-        //            }
-        //            _ => {
-        //                panic!("Unsupported binary operator");
-        //            }
-        //        }
-        //    }
-        //     Expr::Literal(Literal { value: LiteralValue::String(left) }) => {
-        //         match *right {
-        //             Expr::Literal(Literal { value: LiteralValue::String(right) }) => {
-        //                 match expr.operator.token_type {
-        //                     TokenType::Plus => {
-        //                         LiteralValue::String(format!("{}{}", left, right))
-        //                     }
-        //                     TokenType::EqualEqual => {
-        //                         LiteralValue::Bool(left == right)
-        //                     }
-        //                     TokenType::BangEqual => {
-        //                         LiteralValue::Bool(left != right)
-        //                     }
-        //                     _ => {
-        //                         panic!("Unsupported binary operator");
-        //                     }
-        //                 }
-        //             }
-        //             _ => {
-        //                 panic!("Unsupported binary operator");
-        //             }
-        //         }
-        //     }
-        //     _ => {
-        //         panic!("Unsupported binary operator");
-        //     }
-        // }
     }
 
     fn visit_grouping_expr(&self, expr: &Grouping) -> Result<LiteralValue, String> {
@@ -225,6 +158,20 @@ impl Interpreter {
 
     fn evaluate(&self, expr: &Box<Expr>) -> Result<LiteralValue, String> {
         expr.accept(self)
+    }
+
+    fn str_int_equality(expr: &Binary) -> Result<LiteralValue, String> {
+        match expr.operator.token_type {
+            TokenType::EqualEqual => {
+                Ok(LiteralValue::Bool(false))
+            }
+            TokenType::BangEqual => {
+                Ok(LiteralValue::Bool(true))
+            }
+            _ => {
+                Err("Invalid operator".to_string())
+            }
+        }
     }
 
     fn is_truthy(val: LiteralValue) -> LiteralValue {

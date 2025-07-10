@@ -104,10 +104,10 @@ fn main() {
                 }
 
                 let interpreter = Interpreter::new();
-                let literal_value = match (interpreter.interpret(&Box::from(expression)).unwrap_or_else(|err| {
+                let literal_value = match interpreter.interpret(&Box::from(expression)).unwrap_or_else(|err| {
                     eprintln!("Runtime error: {}", err);
                     std::process::exit(70);
-                })) {
+                }) {
                     LiteralValue::Number(num) => {
                         format!("{}", num)
                     }
