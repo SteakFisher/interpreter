@@ -3,24 +3,24 @@ use crate::token_type::{LiteralValue, TokenType};
 
 pub struct Interpreter {}
 
-impl Visitor<LiteralValue> for Interpreter {
-    fn visit_binary_expr(&self, expr: &Binary) -> LiteralValue {
+impl Visitor<Result<LiteralValue, String>> for Interpreter {
+    fn visit_binary_expr(&self, expr: &Binary) -> Result<LiteralValue, String> {
         let left = self.evaluate(&expr.clone().left);
         let right = self.evaluate(&expr.clone().right);
 
-        match left {
+        match left? {
             LiteralValue::String(left) => {
-                match right {
+                match right? {
                     LiteralValue::String(right) => {
                         match expr.operator.token_type {
                             TokenType::Plus => {
-                                LiteralValue::String(format!("{}{}", left, right))
+                                Ok(LiteralValue::String(format!("{}{}", left, right)))
                             }
                             TokenType::EqualEqual => {
-                                LiteralValue::Bool(left == right)
+                                Ok(LiteralValue::Bool(left == right))
                             }
                             TokenType::BangEqual => {
-                                LiteralValue::Bool(left != right)
+                                Ok(LiteralValue::Bool(left != right))
                             }
                             _ => {
                                 panic!("Unsupported binary operator");
@@ -33,38 +33,38 @@ impl Visitor<LiteralValue> for Interpreter {
                 }
             }
             LiteralValue::Number(left) => {
-                match right {
+                match right? {
                     LiteralValue::Number(right) => {
                        match expr.operator.token_type {
                            TokenType::Minus => {
-                               LiteralValue::Number(left - right)
+                               Ok(LiteralValue::Number(left - right))
                            }
                            TokenType::Star => {
-                               LiteralValue::Number(left * right)
+                               Ok(LiteralValue::Number(left * right))
                            }
                            TokenType::Slash => {
-                               LiteralValue::Number(left / right)
+                               Ok(LiteralValue::Number(left / right))
                            }
                            TokenType::Plus => {
-                               LiteralValue::Number(left + right)
+                               Ok(LiteralValue::Number(left + right))
                            }
                            TokenType::Greater => {
-                               LiteralValue::Bool(left > right)
+                               Ok(LiteralValue::Bool(left > right))
                            }
                            TokenType::GreaterEqual => {
-                               LiteralValue::Bool(left >= right)
+                               Ok(LiteralValue::Bool(left >= right))
                            }
                            TokenType::Less => {
-                               LiteralValue::Bool(left < right)
+                               Ok(LiteralValue::Bool(left < right))
                            }
                            TokenType::LessEqual => {
-                               LiteralValue::Bool(left <= right)
+                               Ok(LiteralValue::Bool(left <= right))
                            }
                            TokenType::EqualEqual => {
-                               LiteralValue::Bool(left == right)
+                               Ok(LiteralValue::Bool(left == right))
                            }
                            TokenType::BangEqual => {
-                               LiteralValue::Bool(left != right)
+                               Ok(LiteralValue::Bool(left != right))
                            }
                            _ => {
                                panic!("Unsupported binary operator");
@@ -72,19 +72,19 @@ impl Visitor<LiteralValue> for Interpreter {
                        }
                     }
                     _ => {
-                        LiteralValue::Bool(false)
+                        Ok(LiteralValue::Bool(false))
                     }
                 }
             }
             LiteralValue::Bool(left) => {
-                match right {
+                match right? {
                     LiteralValue::Bool(right) => {
                         match expr.operator.token_type {
                             TokenType::EqualEqual => {
-                                LiteralValue::Bool(left == right)
+                                Ok(LiteralValue::Bool(left == right))
                             }
                             TokenType::BangEqual => {
-                                LiteralValue::Bool(left != right)
+                                Ok(LiteralValue::Bool(left != right))
                             }
                             _ => {
                                 panic!("Unsupported binary operator");
@@ -92,17 +92,17 @@ impl Visitor<LiteralValue> for Interpreter {
                         }
                     }
                     _ => {
-                        LiteralValue::Bool(false)
+                        Ok(LiteralValue::Bool(false))
                     }
                 }
             }
             LiteralValue::Nil => {
-                match right {
+                match right? {
                     LiteralValue::Nil => {
-                        LiteralValue::Bool(true)
+                        Ok(LiteralValue::Bool(true))
                     }
                     _ => {
-                        LiteralValue::Bool(false)
+                        Ok(LiteralValue::Bool(false))
                     }
                 }
             }
@@ -182,40 +182,48 @@ impl Visitor<LiteralValue> for Interpreter {
         // }
     }
 
-    fn visit_grouping_expr(&self, expr: &Grouping) -> LiteralValue {
-        self.evaluate(&expr.expression)
+    fn visit_grouping_expr(&self, expr: &Grouping) -> Result<LiteralValue, String> {
+        Ok(self.evaluate(&expr.expression)?)
     }
 
-    fn visit_literal_expr(&self, expr: &Literal) -> LiteralValue {
-        expr.clone().value
+    fn visit_literal_expr(&self, expr: &Literal) -> Result<LiteralValue, String> {
+        Ok(expr.clone().value)
     }
 
-    fn visit_unary_expr(&self, expr: &Unary) -> LiteralValue {
+    fn visit_unary_expr(&self, expr: &Unary) -> Result<LiteralValue, String> {
         let right = self.evaluate(&expr.right);
 
         match expr.operator.token_type {
             TokenType::Minus => {
-                match right {
-                    LiteralValue::Number(n) => LiteralValue::Number(-n),
-                    _ => panic!("Tried negating a non number")
+                match right? {
+                    LiteralValue::Number(n) => Ok(LiteralValue::Number(-n)),
+                    _ => {
+                        eprintln!("Tried negating a non number");
+                        Err("Tried negating a non number".to_string())
+                    }
                 }
             }
             TokenType::Bang => {
-                Interpreter::is_truthy(right)
+                Ok(Interpreter::is_truthy(right?))
             }
             _ => {
-                panic!("Tried to evaluate a non-unary operator in the unary Visitor");
+                eprintln!("Tried to evaluate a non-unary operator in the unary Visitor");
+                Err("Tried to evaluate a non-unary operator in the unary Visitor".to_string())
             }
         }
     }
 }
 
 impl Interpreter {
-    pub fn interpret(&self, expr: &Box<Expr>) -> LiteralValue {
+    pub fn new() -> Interpreter {
+        Interpreter {}
+    }
+
+    pub fn interpret(&self, expr: &Box<Expr>) -> Result<LiteralValue, String> {
         self.evaluate(expr)
     }
 
-    fn evaluate(&self, expr: &Box<Expr>) -> LiteralValue {
+    fn evaluate(&self, expr: &Box<Expr>) -> Result<LiteralValue, String> {
         expr.accept(self)
     }
 
