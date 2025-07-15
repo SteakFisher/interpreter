@@ -1,5 +1,5 @@
-use std::ptr::null;
 use crate::expr::{Binary, Expr, Grouping, Literal, Unary, Visitor};
+use std::ptr::null;
 
 pub struct AstPrinter {}
 

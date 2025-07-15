@@ -1,22 +1,23 @@
+mod ast_printer;
 mod error;
 mod expr;
+mod interpreter;
+mod parser;
 mod scanner;
 mod token;
 mod token_type;
-mod ast_printer;
-mod parser;
-mod interpreter;
+mod stmt;
 
-use scanner::Scanner;
-use parser::Parser;
-use std::env;
-use std::fs;
-use std::io::{self, Write};
 use crate::ast_printer::AstPrinter;
 use crate::expr::{Binary, Expr, Grouping, Literal, Unary};
 use crate::interpreter::Interpreter;
 use crate::token::Token;
 use crate::token_type::LiteralValue;
+use parser::Parser;
+use scanner::Scanner;
+use std::env;
+use std::fs;
+use std::io::{self, Write};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -48,7 +49,6 @@ fn main() {
                 if scanner.has_error() {
                     std::process::exit(65);
                 }
-
             } else {
                 println!("EOF  null");
             }
@@ -76,7 +76,6 @@ fn main() {
                 }
 
                 println!("{}", ast_printer.print(expression));
-
             } else {
                 println!("EOF  ");
             }
@@ -104,16 +103,16 @@ fn main() {
                 }
 
                 let interpreter = Interpreter::new();
-                let literal_value = match interpreter.interpret(&Box::from(expression)).unwrap_or_else(|err| {
-                    eprintln!("Runtime error: {}", err);
-                    std::process::exit(70);
-                }) {
+                let literal_value = match interpreter
+                    .interpret(&Box::from(expression))
+                    .unwrap_or_else(|err| {
+                        eprintln!("Runtime error: {}", err);
+                        std::process::exit(70);
+                    }) {
                     LiteralValue::Number(num) => {
                         format!("{}", num)
                     }
-                    val => {
-                        val.to_string()
-                    }
+                    val => val.to_string(),
                 };
 
                 println!("{}", literal_value);

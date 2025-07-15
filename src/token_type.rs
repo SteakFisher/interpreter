@@ -83,7 +83,7 @@ pub enum LiteralValue {
     String(String),
     Number(f64),
     Bool(bool),
-    Nil
+    Nil,
 }
 
 impl Display for LiteralValue {

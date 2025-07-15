@@ -8,17 +8,18 @@ def main():
 
     output_dir = sys.argv[1]
     define_ast(output_dir, "Expr", [
-        "Binary   -> left: Box<Expr>, operator: Token, right: Box<Expr>,",
-        "Grouping -> expression: Box<Expr>,",
-        "Literal  -> value: LiteralValue,",
-        "Unary    -> operator: Token, right: Box<Expr>,",
+        "Binary   -> pub left: Box<Expr>, pub operator: Token, pub right: Box<Expr>,",
+        "Grouping -> pub expression: Box<Expr>,",
+        "Literal  -> pub value: LiteralValue,",
+        "Unary    -> pub operator: Token, pub right: Box<Expr>,",
     ])
 
 def define_ast(output_dir, base_name, types):
-    path = os.path.join(output_dir, f"{base_name}.py")
+    path = os.path.join(output_dir, f"{base_name}.rs")
     with open(path, "w") as f:
         f.write("use crate::token::Token;\n")
         f.write("use crate::token_type::LiteralValue;\n\n")
+        f.write("#[derive(Clone)]\n")
         f.write(f"pub enum {base_name} {{ \n")
         for type_def in types:
             expr = type_def.split("->")[0].strip()
@@ -36,7 +37,7 @@ def define_ast(output_dir, base_name, types):
 
 
 def define_type(f, base_name, class_name, field_list):
-    # f.write(f"\n#[derive(Debug, Clone)]\n")
+    f.write("#[derive(Clone)]\n")
     f.write(f"pub struct {class_name} {{\n")
     f.write(f"  {field_list}\n")
     f.write("}\n\n")

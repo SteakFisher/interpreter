@@ -14,7 +14,7 @@ impl Parser {
             tokens,
             current: 0,
 
-            has_error: false
+            has_error: false,
         }
     }
 
@@ -42,7 +42,12 @@ impl Parser {
     fn comparison(&mut self) -> Expr {
         let mut expr = self.term();
 
-        while self.compare(&[TokenType::Greater, TokenType::GreaterEqual, TokenType::Less, TokenType::LessEqual]) {
+        while self.compare(&[
+            TokenType::Greater,
+            TokenType::GreaterEqual,
+            TokenType::Less,
+            TokenType::LessEqual,
+        ]) {
             let operator = self.previous().clone();
             let right = self.term();
 
@@ -91,13 +96,13 @@ impl Parser {
     }
 
     fn unary(&mut self) -> Expr {
-        if self.compare(&[TokenType::Bang, TokenType::Minus])  {
+        if self.compare(&[TokenType::Bang, TokenType::Minus]) {
             let operator = self.previous().clone();
             let right = self.unary();
             return Expr::Unary(Unary {
                 operator,
                 right: Box::new(right),
-            })
+            });
         }
 
         self.primary()
@@ -105,13 +110,19 @@ impl Parser {
 
     fn primary(&mut self) -> Expr {
         if self.compare(&[TokenType::False]) {
-            return Expr::Literal(Literal { value: LiteralValue::Bool(false) });
+            return Expr::Literal(Literal {
+                value: LiteralValue::Bool(false),
+            });
         }
         if self.compare(&[TokenType::True]) {
-            return Expr::Literal(Literal { value: LiteralValue::Bool(true) });
+            return Expr::Literal(Literal {
+                value: LiteralValue::Bool(true),
+            });
         }
         if self.compare(&[TokenType::Nil]) {
-            return Expr::Literal(Literal { value: LiteralValue::Nil });
+            return Expr::Literal(Literal {
+                value: LiteralValue::Nil,
+            });
         }
 
         if self.compare(&[TokenType::Number, TokenType::String]) {
@@ -130,7 +141,9 @@ impl Parser {
 
         self.has_error = true;
         self.error(self.peek(), "Expect expression.");
-        Expr::Literal(Literal { value: LiteralValue::Nil })
+        Expr::Literal(Literal {
+            value: LiteralValue::Nil,
+        })
     }
 
     fn consume(&mut self, token_type: TokenType, message: &str) -> &Token {
@@ -156,7 +169,6 @@ impl Parser {
         }
     }
 
-
     fn peek(&self) -> &Token {
         &self.tokens[self.current]
     }
@@ -173,13 +185,19 @@ impl Parser {
     }
 
     fn check(&self, token: &TokenType) -> bool {
-        if self.is_at_end() { false }
-        else { self.peek().token_type == *token }
+        if self.is_at_end() {
+            false
+        } else {
+            self.peek().token_type == *token
+        }
     }
 
     fn is_at_end(&self) -> bool {
-        if self.peek().token_type == TokenType::EOF { true }
-        else { false }
+        if self.peek().token_type == TokenType::EOF {
+            true
+        } else {
+            false
+        }
     }
 
     fn previous(&self) -> &Token {
@@ -187,7 +205,9 @@ impl Parser {
     }
 
     fn advance(&mut self) -> &Token {
-        if !self.is_at_end() { self.current += 1 }
+        if !self.is_at_end() {
+            self.current += 1
+        }
         self.previous()
     }
 
