@@ -3,6 +3,7 @@ use crate::token::Token;
 use crate::token_type::{KeyWord, LiteralValue, TokenType};
 use std::collections::HashMap;
 use std::fmt::Display;
+use crate::util::Utils;
 
 pub struct Scanner {
     source: String,
@@ -36,17 +37,24 @@ impl Scanner {
     }
 
     fn is_at_end(&self) -> bool {
-        self.current >= self.source.len()
+        self.current >= self.source.char_indices().count()
     }
 
     fn advance(&mut self) -> Option<char> {
-        let c = self.source.chars().nth(self.current);
+        let c = self.source.char_indices().nth(self.current);
         self.current += 1;
-        c
+        match c {
+            None => {
+                None
+            }
+            Some(val) => {
+                Some(val.1)
+            }
+        }
     }
 
     fn add_token(&mut self, token: TokenType, literal: Option<LiteralValue>) {
-        let text = self.source[self.start..self.current].to_owned();
+        let text = Utils::get_char_range(&self.source, self.start, self.current);
         self.tokens
             .push(Token::new(token, text, literal, self.line));
     }
@@ -67,7 +75,7 @@ impl Scanner {
         if self.is_at_end() {
             return Some('\0');
         }
-        self.source.chars().nth(self.current)
+        Some(self.source.char_indices().nth(self.current).unwrap().1)
     }
 
     fn peek_next(&self) -> Option<char> {
@@ -90,7 +98,7 @@ impl Scanner {
 
         self.advance();
 
-        let value = self.source[self.start + 1..self.current - 1].to_owned();
+        let value = Utils::get_char_range(&self.source, self.start + 1, self.current - 1);
         self.add_token(TokenType::String, Option::from(LiteralValue::String(value)));
     }
 
@@ -140,6 +148,7 @@ impl Scanner {
             Some(c) => c,
             None => {
                 println!("SCAN_TOKEN OUT OF BOUNDS");
+
                 return;
             }
         };
