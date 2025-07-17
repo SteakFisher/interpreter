@@ -1,9 +1,11 @@
-use crate::expr::{Binary, Expr, Grouping, Literal, Unary, Visitor};
+use crate::expr::{Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor};
+use crate::stmt::{Expression, Print, Stmt, Visitor as StmtVisitor};
 use crate::token_type::{LiteralValue, TokenType};
+use crate::util::Utils;
 
 pub struct Interpreter {}
 
-impl Visitor<Result<LiteralValue, String>> for Interpreter {
+impl ExprVisitor<Result<LiteralValue, String>> for Interpreter {
     fn visit_binary_expr(&self, expr: &Binary) -> Result<LiteralValue, String> {
         let left = self.evaluate(&expr.clone().left);
         let right = self.evaluate(&expr.clone().right);
@@ -79,13 +81,36 @@ impl Visitor<Result<LiteralValue, String>> for Interpreter {
     }
 }
 
+impl StmtVisitor<()> for Interpreter {
+    fn visit_expression_expr(&self, expr: &Expression) {
+        self.evaluate(&expr.expression).expect("TODO: panic message");
+    }
+
+    fn visit_print_expr(&self, expr: &Print) {
+        let val = Utils::print_literal(&self.evaluate(&expr.expression).expect("Failed to print fsr"));
+        
+        println!("{}", val);
+    }
+}
+
 impl Interpreter {
     pub fn new() -> Interpreter {
         Interpreter {}
     }
 
-    pub fn interpret(&self, expr: &Box<Expr>) -> Result<LiteralValue, String> {
+    pub fn interpret(&self, stmts: &Vec<Stmt>) -> Result<(), String> {
+        for stmt in stmts {
+            self.execute(stmt);
+        }
+        Ok(())
+    }
+
+    pub fn interpret_expression(&self, expr: &Box<Expr>) -> Result<LiteralValue, String> {
         self.evaluate(expr)
+    }
+
+    fn execute(&self, stmt: &Stmt)  {
+        stmt.accept(self)
     }
 
     fn evaluate(&self, expr: &Box<Expr>) -> Result<LiteralValue, String> {
