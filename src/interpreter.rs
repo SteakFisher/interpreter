@@ -83,12 +83,18 @@ impl ExprVisitor<Result<LiteralValue, String>> for Interpreter {
 
 impl StmtVisitor<()> for Interpreter {
     fn visit_expression_expr(&self, expr: &Expression) {
-        self.evaluate(&expr.expression).expect("TODO: panic message");
+        self.evaluate(&expr.expression).unwrap_or_else(|_| {
+            eprintln!("Tried executing an expression which is not an expression");
+            std::process::exit(70)
+        });
     }
 
     fn visit_print_expr(&self, expr: &Print) {
-        let val = Utils::print_literal(&self.evaluate(&expr.expression).expect("Failed to print fsr"));
-        
+        let val = Utils::print_literal(&self.evaluate(&expr.expression).unwrap_or_else(|_| {
+            eprintln!("Tried executing an expression which is not an expression");
+            std::process::exit(70)
+        }));
+
         println!("{}", val);
     }
 }
