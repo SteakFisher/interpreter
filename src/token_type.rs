@@ -29,7 +29,7 @@ impl KeyWord {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum TokenType {
     LeftParan,
     RightParan,
@@ -78,7 +78,7 @@ pub enum TokenType {
     EOF,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum LiteralValue {
     String(String),
     Number(f64),

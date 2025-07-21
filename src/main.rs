@@ -8,6 +8,7 @@ mod token;
 mod token_type;
 mod stmt;
 mod util;
+mod environment;
 
 use crate::ast_printer::AstPrinter;
 use crate::expr::{Binary, Expr, Grouping, Literal, Unary};
@@ -70,9 +71,9 @@ fn main() {
                 }
 
                 let mut expr = Parser::new(scanner.get_tokens());
-                let ast_printer = AstPrinter {};
+                let mut ast_printer = AstPrinter {};
                 let expression = expr.expression().unwrap_or_else(|err| {
-                    eprintln!("Runtime error: {}", err);
+                    eprintln!("Parsing error: {}", err);
                     std::process::exit(65);
                 });
 
@@ -98,11 +99,11 @@ fn main() {
                 let mut expr = Parser::new(scanner.get_tokens());
 
                 let expression = expr.expression().unwrap_or_else(|err| {
-                    eprintln!("Runtime error: {}", err);
+                    eprintln!("Parsing error: {}", err);
                     std::process::exit(65);
                 });;
 
-                let interpreter = Interpreter::new();
+                let mut interpreter = Interpreter::new();
                 let literal_value = Utils::print_literal(&interpreter
                     .interpret_expression(&Box::from(expression))
                     .unwrap_or_else(|err| {
@@ -130,11 +131,11 @@ fn main() {
                 let mut expr = Parser::new(scanner.get_tokens());
 
                 let expression = expr.parse().unwrap_or_else(|err| {
-                    eprintln!("Runtime error: {}", err);
+                    eprintln!("Parsing error: {}", err);
                     std::process::exit(65);
                 });
 
-                let interpreter = Interpreter::new();
+                let mut interpreter = Interpreter::new();
                 interpreter
                     .interpret(&Box::from(expression))
                     .unwrap_or_else(|err| {

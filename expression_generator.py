@@ -12,11 +12,19 @@ def main():
         "Grouping -> pub expression: Box<Expr>,",
         "Literal  -> pub value: LiteralValue,",
         "Unary    -> pub operator: Token, pub right: Box<Expr>,",
+        "Variable -> pub name: Token,",
+    ])
+
+    define_ast(output_dir, "Stmt", [
+        "Expression -> pub expression: Box<Expr>",
+        "Print      -> pub expression: Box<Expr>",
+        "Var        -> pub name: Token, pub initializer: Box<Expr>"
     ])
 
 def define_ast(output_dir, base_name, types):
     path = os.path.join(output_dir, f"{base_name}.rs")
     with open(path, "w") as f:
+        f.write("use crate::expr::Expr;\n")
         f.write("use crate::token::Token;\n")
         f.write("use crate::token_type::LiteralValue;\n\n")
         f.write("#[derive(Clone)]\n")
@@ -31,7 +39,7 @@ def define_ast(output_dir, base_name, types):
             fields = type_def.split("->")[1].strip() if "->" in type_def else ""
             define_type(f, base_name, expr, fields)
 
-        define_visitor(f, [type_def.split("->")[0].strip() for type_def in types])
+        define_visitor(f, base_name, [type_def.split("->")[0].strip() for type_def in types])
 
         define_implementation(f, base_name, [type_def.split("->")[0].strip() for type_def in types])
 
@@ -43,10 +51,10 @@ def define_type(f, base_name, class_name, field_list):
     f.write("}\n\n")
 
 
-def define_visitor(f, types):
+def define_visitor(f, base_name, types):
     f.write(f"pub trait Visitor<R> {{\n")
     for type_name in types:
-        f.write(f"    fn visit_{type_name.lower()}_expr(&self, expr: &{type_name}) -> R;\n")
+        f.write(f"    fn visit_{type_name.lower()}_{base_name.lower()}(&self, expr: &{type_name}) -> R;\n")
     f.write("}\n\n")
 
 def define_implementation(f, base_name, types):

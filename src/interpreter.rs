@@ -1,12 +1,15 @@
-use crate::expr::{Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor};
-use crate::stmt::{Expression, Print, Stmt, Visitor as StmtVisitor};
+use crate::environment::Environment;
+use crate::expr::{Binary, Expr, Grouping, Literal, Unary, Variable, Visitor as ExprVisitor};
+use crate::stmt::{Expression, Print, Stmt, Var, Visitor as StmtVisitor};
 use crate::token_type::{LiteralValue, TokenType};
 use crate::util::Utils;
 
-pub struct Interpreter {}
+pub struct Interpreter {
+    environment: Environment
+}
 
 impl ExprVisitor<Result<LiteralValue, String>> for Interpreter {
-    fn visit_binary_expr(&self, expr: &Binary) -> Result<LiteralValue, String> {
+    fn visit_binary_expr(&mut self, expr: &Binary) -> Result<LiteralValue, String> {
         let left = self.evaluate(&expr.clone().left);
         let right = self.evaluate(&expr.clone().right);
 
@@ -53,15 +56,15 @@ impl ExprVisitor<Result<LiteralValue, String>> for Interpreter {
         }
     }
 
-    fn visit_grouping_expr(&self, expr: &Grouping) -> Result<LiteralValue, String> {
+    fn visit_grouping_expr(&mut self, expr: &Grouping) -> Result<LiteralValue, String> {
         Ok(self.evaluate(&expr.expression)?)
     }
 
-    fn visit_literal_expr(&self, expr: &Literal) -> Result<LiteralValue, String> {
+    fn visit_literal_expr(&mut self, expr: &Literal) -> Result<LiteralValue, String> {
         Ok(expr.clone().value)
     }
 
-    fn visit_unary_expr(&self, expr: &Unary) -> Result<LiteralValue, String> {
+    fn visit_unary_expr(&mut self, expr: &Unary) -> Result<LiteralValue, String> {
         let right = self.evaluate(&expr.right);
 
         match expr.operator.token_type {
@@ -79,17 +82,21 @@ impl ExprVisitor<Result<LiteralValue, String>> for Interpreter {
             }
         }
     }
+
+    fn visit_variable_expr(&mut self, expr: &Variable) -> Result<LiteralValue, String> {
+        self.environment.get(expr.clone().name)
+    }
 }
 
 impl StmtVisitor<()> for Interpreter {
-    fn visit_expression_expr(&self, expr: &Expression) {
+    fn visit_expression_expr(&mut self, expr: &Expression) {
         self.evaluate(&expr.expression).unwrap_or_else(|_| {
             eprintln!("Tried executing an expression which is not an expression");
             std::process::exit(70)
         });
     }
 
-    fn visit_print_expr(&self, expr: &Print) {
+    fn visit_print_expr(&mut self, expr: &Print) {
         let val = Utils::print_literal(&self.evaluate(&expr.expression).unwrap_or_else(|_| {
             eprintln!("Tried executing an expression which is not an expression");
             std::process::exit(70)
@@ -97,29 +104,41 @@ impl StmtVisitor<()> for Interpreter {
 
         println!("{}", val);
     }
+
+    fn visit_var_expr(&mut self, expr: &Var) -> () {
+        let mut val = LiteralValue::Nil;
+
+        if let Some(expr) = expr.clone().initializer {
+            val = self.evaluate(&Box::from(expr)).unwrap();
+        }
+
+        self.environment.define(expr.name.lexeme.clone(), val);
+    }
 }
 
 impl Interpreter {
     pub fn new() -> Interpreter {
-        Interpreter {}
+        Interpreter {
+            environment: Environment::new()
+        }
     }
 
-    pub fn interpret(&self, stmts: &Vec<Stmt>) -> Result<(), String> {
+    pub fn interpret(&mut self, stmts: &Vec<Stmt>) -> Result<(), String> {
         for stmt in stmts {
             self.execute(stmt);
         }
         Ok(())
     }
 
-    pub fn interpret_expression(&self, expr: &Box<Expr>) -> Result<LiteralValue, String> {
+    pub fn interpret_expression(&mut self, expr: &Box<Expr>) -> Result<LiteralValue, String> {
         self.evaluate(expr)
     }
 
-    fn execute(&self, stmt: &Stmt)  {
+    fn execute(&mut self, stmt: &Stmt)  {
         stmt.accept(self)
     }
 
-    fn evaluate(&self, expr: &Box<Expr>) -> Result<LiteralValue, String> {
+    fn evaluate(&mut self, expr: &Box<Expr>) -> Result<LiteralValue, String> {
         expr.accept(self)
     }
 

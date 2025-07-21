@@ -1,5 +1,5 @@
-use crate::expr::{Binary, Expr, Grouping, Literal, Unary};
-use crate::stmt::{Expression, Print, Stmt};
+use crate::expr::{Binary, Expr, Grouping, Literal, Unary, Variable};
+use crate::stmt::{Expression, Print, Stmt, Var};
 use crate::token::Token;
 use crate::token_type::{LiteralValue, TokenType};
 
@@ -20,10 +20,30 @@ impl Parser {
         let mut stmts: Vec<Stmt> = Vec::new();
 
         while !self.is_at_end() {
-            stmts.push(self.statement()?);
+            stmts.push(self.declaration()?);
         }
 
         Ok(stmts)
+    }
+
+    fn declaration(&mut self) -> Result<Stmt, String> {
+        if self.compare(&[TokenType::Var]) {
+            return Ok(self.var_declaration()?);
+        }
+
+        Ok(self.statement()?)
+    }
+
+    fn var_declaration(&mut self) -> Result<Stmt, String> {
+        let name = self.consume(TokenType::Identifier, "Expect variable name")?.clone();
+
+        let mut initializer = Expr::Literal(Literal { value: LiteralValue::Nil });
+        if self.compare(&[TokenType::Equal]) {
+            initializer = self.expression()?;
+        }
+
+        self.consume(TokenType::Semicolon, "Expect ';' after variable declaration")?;
+        Ok(Stmt::Var(Var { name, initializer: Option::from(Box::new(initializer)) }))
     }
 
     fn statement(&mut self) -> Result<Stmt, String> {
@@ -37,7 +57,7 @@ impl Parser {
     fn expression_statement(&mut self) -> Result<Stmt, String> {
         let expr = self.expression()?;
         self.consume(TokenType::Semicolon, "Expect ';'");
-        Ok(Stmt::Expression(Expression { expression: Box::new((expr)) }))
+        Ok(Stmt::Expression(Expression { expression: Box::new(expr) }))
     }
 
     fn print_statement(&mut self) -> Result<Stmt, String> {
@@ -170,6 +190,10 @@ impl Parser {
             }))
         }
 
+        if self.compare(&[TokenType::Identifier]) {
+            // println!("{} {}", self.previous(), self.peek());
+            return Ok(Expr::Variable(Variable { name: self.previous().clone() }))
+        }
 
         Err(self.error(self.peek(), "Expect expression.").to_string())
     }

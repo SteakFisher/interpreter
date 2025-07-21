@@ -1,14 +1,14 @@
-use crate::expr::{Binary, Expr, Grouping, Literal, Unary, Visitor};
+use crate::expr::{Binary, Expr, Grouping, Literal, Unary, Variable, Visitor};
 use std::ptr::null;
 
 pub struct AstPrinter {}
 
 impl AstPrinter {
-    pub fn print(&self, expr: Expr) -> String {
+    pub fn print(&mut self, expr: Expr) -> String {
         expr.accept(self)
     }
 
-    fn parenthesize(&self, name: String, exprs: &[&Box<Expr>]) -> String {
+    fn parenthesize(&mut self, name: String, exprs: &[&Box<Expr>]) -> String {
         let mut final_string = String::new();
 
         final_string.push_str("(");
@@ -23,20 +23,25 @@ impl AstPrinter {
 }
 
 impl Visitor<String> for AstPrinter {
-    fn visit_binary_expr(&self, expr: &Binary) -> String {
+    fn visit_binary_expr(&mut self, expr: &Binary) -> String {
         // println!("Binary expr: {}", expr.operator);
         self.parenthesize(expr.operator.lexeme.to_string(), &[&expr.left, &expr.right])
     }
 
-    fn visit_grouping_expr(&self, expr: &Grouping) -> String {
+    fn visit_grouping_expr(&mut self, expr: &Grouping) -> String {
         self.parenthesize("group".to_string(), &[&expr.expression])
     }
 
-    fn visit_literal_expr(&self, expr: &Literal) -> String {
+    fn visit_literal_expr(&mut self, expr: &Literal) -> String {
         expr.value.to_string()
     }
 
-    fn visit_unary_expr(&self, expr: &Unary) -> String {
+    fn visit_unary_expr(&mut self, expr: &Unary) -> String {
         self.parenthesize(expr.operator.lexeme.to_string(), &[&expr.right])
+    }
+
+    fn visit_variable_expr(&mut self, expr: &Variable) -> String {
+        println!("{}", expr.name);
+        self.parenthesize(expr.name.lexeme.to_string(), &[])
     }
 }
