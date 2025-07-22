@@ -116,7 +116,10 @@ impl StmtVisitor<()> for Interpreter {
         let mut val = LiteralValue::Nil;
 
         if let Some(expr) = stmt.clone().initializer {
-            val = self.evaluate(&Box::from(expr)).unwrap();
+            val = self.evaluate(&Box::from(expr)).unwrap_or_else(|_| {
+                eprintln!("Tried executing an expression which is not an expression");
+                std::process::exit(70)
+            });
         }
 
         self.environment.define(stmt.name.lexeme.clone(), val);

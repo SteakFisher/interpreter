@@ -1,1 +1,3 @@
-(foo
+var baz = 63;
+var result = (baz + hello) / foo;
+print result;
