@@ -17,6 +17,15 @@ impl Environment {
         self.variables.insert(name, value);
     }
 
+    pub fn assign(&mut self, name: Token, value: LiteralValue) -> Result<(), String> {
+        if self.variables.contains_key(&name.lexeme) {
+            self.variables.insert(name.lexeme, value);
+            return Ok(())
+        }
+
+        return Err(format!("Variable {} not found", name.lexeme));
+    }
+
     pub fn get(&mut self, name: Token) -> Result<LiteralValue, String> {
         if let Some(value) = self.variables.get(&name.lexeme) {
             Ok(value.clone())

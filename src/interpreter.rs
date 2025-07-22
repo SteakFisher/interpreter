@@ -1,5 +1,5 @@
 use crate::environment::Environment;
-use crate::expr::{Binary, Expr, Grouping, Literal, Unary, Variable, Visitor as ExprVisitor};
+use crate::expr::{Assign, Binary, Expr, Grouping, Literal, Unary, Variable, Visitor as ExprVisitor};
 use crate::stmt::{Expression, Print, Stmt, Var, Visitor as StmtVisitor};
 use crate::token_type::{LiteralValue, TokenType};
 use crate::util::Utils;
@@ -9,6 +9,13 @@ pub struct Interpreter {
 }
 
 impl ExprVisitor<Result<LiteralValue, String>> for Interpreter {
+    fn visit_assign_expr(&mut self, expr: &Assign) -> Result<LiteralValue, String> {
+        let value = self.evaluate(&expr.value)?;
+        self.environment.assign(expr.clone().name, value.clone())?;
+
+        Ok(value)
+    }
+
     fn visit_binary_expr(&mut self, expr: &Binary) -> Result<LiteralValue, String> {
         let left = self.evaluate(&expr.clone().left);
         let right = self.evaluate(&expr.clone().right);
@@ -89,15 +96,15 @@ impl ExprVisitor<Result<LiteralValue, String>> for Interpreter {
 }
 
 impl StmtVisitor<()> for Interpreter {
-    fn visit_expression_expr(&mut self, expr: &Expression) {
-        self.evaluate(&expr.expression).unwrap_or_else(|_| {
+    fn visit_expression_stmt(&mut self, stmt: &Expression) {
+        self.evaluate(&stmt.expression).unwrap_or_else(|_| {
             eprintln!("Tried executing an expression which is not an expression");
             std::process::exit(70)
         });
     }
 
-    fn visit_print_expr(&mut self, expr: &Print) {
-        let val = Utils::print_literal(&self.evaluate(&expr.expression).unwrap_or_else(|_| {
+    fn visit_print_stmt(&mut self, stmt: &Print) {
+        let val = Utils::print_literal(&self.evaluate(&stmt.expression).unwrap_or_else(|_| {
             eprintln!("Tried executing an expression which is not an expression");
             std::process::exit(70)
         }));
@@ -105,14 +112,14 @@ impl StmtVisitor<()> for Interpreter {
         println!("{}", val);
     }
 
-    fn visit_var_expr(&mut self, expr: &Var) -> () {
+    fn visit_var_stmt(&mut self, stmt: &Var) -> () {
         let mut val = LiteralValue::Nil;
 
-        if let Some(expr) = expr.clone().initializer {
+        if let Some(expr) = stmt.clone().initializer {
             val = self.evaluate(&Box::from(expr)).unwrap();
         }
 
-        self.environment.define(expr.name.lexeme.clone(), val);
+        self.environment.define(stmt.name.lexeme.clone(), val);
     }
 }
 

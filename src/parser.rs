@@ -1,4 +1,4 @@
-use crate::expr::{Binary, Expr, Grouping, Literal, Unary, Variable};
+use crate::expr::{Assign, Binary, Expr, Grouping, Literal, Unary, Variable};
 use crate::stmt::{Expression, Print, Stmt, Var};
 use crate::token::Token;
 use crate::token_type::{LiteralValue, TokenType};
@@ -70,7 +70,29 @@ impl Parser {
     }
 
     pub fn expression(&mut self) -> Result<Expr, String> {
-        self.equality()
+        self.assignment()
+    }
+
+    fn assignment(&mut self) -> Result<Expr, String> {
+        let expr = self.equality()?;
+
+        if self.compare(&[TokenType::Equal]) {
+            let equals = self.previous().clone();
+            let value = self.assignment();
+
+            if let Expr::Variable(var) = expr {
+                let name = var.name;
+                return Ok(Expr::Assign(Assign {
+                    name,
+                    value: Box::new(value?),
+                }));
+            }
+
+            self.error(&equals, "Expect '=' after assignment");
+            return Err("Expect = after assignment".to_string());
+        }
+
+        Ok(expr)
     }
 
     fn equality(&mut self) -> Result<Expr, String> {
@@ -184,14 +206,13 @@ impl Parser {
 
         if self.compare(&[TokenType::LeftParan]) {
             let expr = self.expression()?;
-            self.consume(TokenType::RightParan, "Expect ')' after expression.");
+            self.consume(TokenType::RightParan, "Expect ')' after expression.")?;
             return Ok(Expr::Grouping(Grouping {
                 expression: Box::new(expr),
             }))
         }
 
         if self.compare(&[TokenType::Identifier]) {
-            // println!("{} {}", self.previous(), self.peek());
             return Ok(Expr::Variable(Variable { name: self.previous().clone() }))
         }
 

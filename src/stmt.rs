@@ -1,5 +1,6 @@
 use crate::expr::Expr;
 use crate::token::Token;
+use crate::token_type::LiteralValue;
 
 #[derive(Clone)]
 pub enum Stmt {
@@ -24,17 +25,17 @@ pub struct Var {
 }
 
 pub trait Visitor<R> {
-    fn visit_expression_expr(&mut self, expr: &Expression) -> R;
-    fn visit_print_expr(&mut self, expr: &Print) -> R;
-    fn visit_var_expr(&mut self, expr: &Var) -> R;
+    fn visit_expression_stmt(&mut self, expr: &Expression) -> R;
+    fn visit_print_stmt(&mut self, expr: &Print) -> R;
+    fn visit_var_stmt(&mut self, expr: &Var) -> R;
 }
 
 impl Stmt {
     pub fn accept<V: Visitor<R>, R>(&self, visitor: &mut V) -> R {
         match self {
-            Stmt::Expression(expr) => visitor.visit_expression_expr(expr),
-            Stmt::Print(expr) => visitor.visit_print_expr(expr),
-            Stmt::Var(expr) => visitor.visit_var_expr(expr),
+            Stmt::Expression(stmt) => visitor.visit_expression_stmt(stmt),
+            Stmt::Print(stmt) => visitor.visit_print_stmt(stmt),
+            Stmt::Var(stmt) => visitor.visit_var_stmt(stmt),
         }
     }
 }

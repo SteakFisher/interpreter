@@ -1,5 +1,6 @@
-use crate::expr::{Binary, Expr, Grouping, Literal, Unary, Variable, Visitor};
+use crate::expr::{Assign, Binary, Expr, Grouping, Literal, Unary, Variable, Visitor};
 use std::ptr::null;
+use crate::token_type::LiteralValue;
 
 pub struct AstPrinter {}
 
@@ -9,6 +10,7 @@ impl AstPrinter {
     }
 
     fn parenthesize(&mut self, name: String, exprs: &[&Box<Expr>]) -> String {
+
         let mut final_string = String::new();
 
         final_string.push_str("(");
@@ -23,6 +25,10 @@ impl AstPrinter {
 }
 
 impl Visitor<String> for AstPrinter {
+    fn visit_assign_expr(&mut self, expr: &Assign) -> String {
+        todo!()
+    }
+
     fn visit_binary_expr(&mut self, expr: &Binary) -> String {
         // println!("Binary expr: {}", expr.operator);
         self.parenthesize(expr.operator.lexeme.to_string(), &[&expr.left, &expr.right])
@@ -41,7 +47,9 @@ impl Visitor<String> for AstPrinter {
     }
 
     fn visit_variable_expr(&mut self, expr: &Variable) -> String {
-        println!("{}", expr.name);
-        self.parenthesize(expr.name.lexeme.to_string(), &[])
+        // self.parenthesize("group".to_string(), &[&Box::new(Expr::Literal(Literal {
+        //     value: LiteralValue::String(expr.clone().name.lexeme),
+        // }))])
+        expr.clone().name.lexeme
     }
 }
