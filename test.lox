@@ -1,3 +1,8 @@
-var baz = 63;
-var result = (baz + hello) / foo;
-print result;
+{
+    var foo = "before";
+    print foo;
+}
+{
+    var foo = "after";
+    print foo;
+}

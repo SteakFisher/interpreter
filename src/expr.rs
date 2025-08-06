@@ -1,7 +1,7 @@
 use crate::token::Token;
 use crate::token_type::LiteralValue;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Expr {
     Assign(Assign),
     Binary(Binary),
@@ -11,32 +11,32 @@ pub enum Expr {
     Variable(Variable),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Assign {
     pub name: Token, pub value: Box<Expr>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Binary {
     pub left: Box<Expr>, pub operator: Token, pub right: Box<Expr>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Grouping {
     pub expression: Box<Expr>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Literal {
     pub value: LiteralValue,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Unary {
     pub operator: Token, pub right: Box<Expr>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Variable {
     pub name: Token,
 }

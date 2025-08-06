@@ -1,5 +1,5 @@
 use crate::expr::{Assign, Binary, Expr, Grouping, Literal, Unary, Variable};
-use crate::stmt::{Expression, Print, Stmt, Var};
+use crate::stmt::{Block, Expression, Print, Stmt, Var};
 use crate::token::Token;
 use crate::token_type::{LiteralValue, TokenType};
 
@@ -51,7 +51,22 @@ impl Parser {
             return self.print_statement()
         }
 
+        if self.compare(&[TokenType::LeftBrace]) {
+            return self.block_statement()
+        }
+
         self.expression_statement()
+    }
+
+    fn block_statement(&mut self) -> Result<Stmt, String> {
+        let mut statements = Vec::new();
+
+        while !self.is_at_end() && !self.check(&TokenType::RightBrace) {
+            statements.push(Box::from(self.declaration()?));
+        }
+
+        self.consume(TokenType::RightBrace, "Expect '}' after block")?;
+        Ok(Stmt::Block(Block { statements }))
     }
 
     fn expression_statement(&mut self) -> Result<Stmt, String> {

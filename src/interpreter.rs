@@ -1,17 +1,19 @@
+use std::cell::{Ref, RefCell};
+use std::rc::Rc;
 use crate::environment::Environment;
 use crate::expr::{Assign, Binary, Expr, Grouping, Literal, Unary, Variable, Visitor as ExprVisitor};
-use crate::stmt::{Expression, Print, Stmt, Var, Visitor as StmtVisitor};
+use crate::stmt::{Block, Expression, Print, Stmt, Var, Visitor as StmtVisitor};
 use crate::token_type::{LiteralValue, TokenType};
 use crate::util::Utils;
 
 pub struct Interpreter {
-    environment: Environment
+    environment: Rc<RefCell<Environment>>
 }
 
 impl ExprVisitor<Result<LiteralValue, String>> for Interpreter {
     fn visit_assign_expr(&mut self, expr: &Assign) -> Result<LiteralValue, String> {
         let value = self.evaluate(&expr.value)?;
-        self.environment.assign(expr.clone().name, value.clone())?;
+        self.environment.borrow_mut().assign(expr.clone().name, value.clone()).expect("TODO: panic message");
 
         Ok(value)
     }
@@ -91,11 +93,15 @@ impl ExprVisitor<Result<LiteralValue, String>> for Interpreter {
     }
 
     fn visit_variable_expr(&mut self, expr: &Variable) -> Result<LiteralValue, String> {
-        self.environment.get(expr.clone().name)
+        self.environment.borrow().get(expr.clone().name)
     }
 }
 
 impl StmtVisitor<()> for Interpreter {
+    fn visit_block_stmt(&mut self, stmt: &Block) -> () {
+        self.execute_block(&stmt.statements, Rc::new(RefCell::from(Environment::local(self.environment.clone())))).expect("TODO: panic message");
+    }
+
     fn visit_expression_stmt(&mut self, stmt: &Expression) {
         self.evaluate(&stmt.expression).unwrap_or_else(|_| {
             eprintln!("Tried executing an expression which is not an expression");
@@ -122,14 +128,14 @@ impl StmtVisitor<()> for Interpreter {
             });
         }
 
-        self.environment.define(stmt.name.lexeme.clone(), val);
+        self.environment.borrow_mut().define(stmt.name.lexeme.clone(), val);
     }
 }
 
 impl Interpreter {
     pub fn new() -> Interpreter {
         Interpreter {
-            environment: Environment::new()
+            environment: Rc::new(RefCell::from(Environment::global()))
         }
     }
 
@@ -142,6 +148,19 @@ impl Interpreter {
 
     pub fn interpret_expression(&mut self, expr: &Box<Expr>) -> Result<LiteralValue, String> {
         self.evaluate(expr)
+    }
+
+    fn execute_block(&mut self, stmts: &Vec<Box<Stmt>>, environment: Rc<RefCell<Environment>>) -> Result<(), String> {
+        let previous = Rc::clone(&self.environment);
+
+        self.environment = environment;
+
+        for stmt in stmts {
+            self.execute(stmt);
+        }
+
+        self.environment = previous;
+        Ok(())
     }
 
     fn execute(&mut self, stmt: &Stmt)  {
